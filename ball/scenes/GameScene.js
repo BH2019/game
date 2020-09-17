@@ -94,6 +94,8 @@ export default class GameScene extends Phaser.Scene
             console.log("Game Over")
             this.scene.start();
         }, null, this);
+
+        console.log("created")
     }
 
     update()
