@@ -49,7 +49,7 @@ export default class GameScene extends Phaser.Scene
     preload()
     {
         this.load.image('pipe', 'assets/images/pipe.png');
-        this.load.image('bird', 'assets/images/bird.png');
+        this.load.image('bird', 'assets/images/flappy_bird.png');
     }
 
     /**
@@ -67,7 +67,7 @@ export default class GameScene extends Phaser.Scene
             80,
             this.physics.world.bounds.height / 2,
             'bird' // key of image for the sprite
-        )
+        ).setScale(0.08)
         this.bird.body.gravity.y = this.gameOptions.birdGravity
 
         this.pipeGroup = this.physics.add.group()
