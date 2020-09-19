@@ -13,7 +13,7 @@ export default class GameScene extends Phaser.Scene
         // Variable to determine if we started playing
         this.gameStarted = false
 
-        this.rightMostPipeX = 100
+        this.rightMostPipe = undefined
 
         this.pipePool = []
 
@@ -33,9 +33,12 @@ export default class GameScene extends Phaser.Scene
 
             // hole range between pipes, in pixels
             pipeHole: [100, 130],
+//            pipeHole: [350, 380],
 
             // minimum pipe height, in pixels. Affects hole position
             minPipeHeight: 50,
+//            minPipeHeight: 20,
+
         }
     }
 
@@ -55,7 +58,6 @@ export default class GameScene extends Phaser.Scene
      */
     create()
     {
-        console.log(this.rightMostPipeX)
         /**
          * Coordinates start at 0,0 from the top left
          * As we move rightward, the x value increases
@@ -85,13 +87,20 @@ export default class GameScene extends Phaser.Scene
 
     placePipes()
     {
+        if(this.rightMostPipe == undefined)
+        {
+            var rightMostPipeX = 100
+        }
+        else {
+            var rightMostPipeX = this.rightMostPipe.getBounds().left
+        }
 
-        let pipeX = this.rightMostPipeX + this.pipePool[0].body.width + Phaser.Math.Between(this.gameOptions.pipeDistance[0], this.gameOptions.pipeDistance[1])
+        let pipeX = rightMostPipeX + Phaser.Math.Between(this.gameOptions.pipeDistance[0], this.gameOptions.pipeDistance[1])
 
         let pipeHoleHeight = Phaser.Math.Between(this.gameOptions.pipeHole[0], this.gameOptions.pipeHole[1]);
         let pipeHolePosition = Phaser.Math.Between(this.gameOptions.minPipeHeight + pipeHoleHeight / 2, this.physics.world.bounds.height - this.gameOptions.minPipeHeight - pipeHoleHeight / 2);
 
-//            console.log(pipeHoleHeight, pipeHolePosition)
+        console.log(pipeHoleHeight, pipeHolePosition)
 
         let pipeY1 = pipeHolePosition - pipeHoleHeight / 2
         let pipeY2 = pipeHolePosition + pipeHoleHeight / 2
@@ -109,8 +118,9 @@ export default class GameScene extends Phaser.Scene
         this.pipePool[0].setOrigin(0, 1)
         this.pipePool[1].setOrigin(0, 0)
 
+        this.rightMostPipe = this.pipePool[0]
+
         this.pipePool = []
-        this.rightMostPipeX = pipeX
     }
 
     update()
@@ -121,15 +131,16 @@ export default class GameScene extends Phaser.Scene
         }
 
         this.pipeGroup.getChildren().forEach(function(pipe){
-            if(pipe.getBounds.right < 0)
+            if(pipe.getBounds().right < 0)
             {
                 this.pipePool.push(pipe)
                 if(this.pipePool.length == 2)
                 {
+                    console.log("placePipe in update")
                     this.placePipes()
                 }
             }
-        })        
+        }, this)        
     }
 
     flap()
@@ -141,7 +152,7 @@ export default class GameScene extends Phaser.Scene
     gameOver()
     {
         console.log("gameOver")
-        this.rightMostPipeX = 150
+        this.rightMostPipe = undefined
         this.scene.start("game-scene")
     }
 }
