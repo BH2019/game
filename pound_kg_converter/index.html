@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body{
+            margin-top: 70px;
+            background: #333;
+            color: #fff;
+        }
+    </style>
+    <title>Weight Converter</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <h1 class="display-4 text-center mb-3">Weight Converter</h1>
+                <form>
+                    <div class="form-group">
+                        <label for="lbsInput">Pound: </label>
+                        <input id="lbsInput" type="number" class="form-control form-control-lg" placeholder="Enter Pounds...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kgInput">Kg: </label>
+                        <input id="kgInput" type="number" class="form-control form-control-lg" placeholder="Enter Kgs...">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const lbsInputObj = document.getElementById('lbsInput')
+        const kgInputObj = document.getElementById('kgInput')
+        lbsInputObj.addEventListener('input', function(e){
+
+            let lbs = e.target.value;
+
+            kgInputObj.value = lbs/2.2046
+            
+        });
+
+        kgInputObj.addEventListener('input', function(e){
+
+            let kg = e.target.value;
+
+            lbsInputObj.value = kg/2.2046
+
+        });
+
+    </script>
+</body>
+</html>
