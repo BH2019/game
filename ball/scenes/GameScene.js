@@ -13,16 +13,6 @@ export default class GameScene extends Phaser.Scene
 
         // Variable to determine if we started playing
         this.gameStarted = false
-
-        this.firstBounce = 0
-
-        this.gameOptions = {
-            bounceHeight: 300,
-            ballGravity: 1200,
-            ballPower: 1200,
-            obstacleSpeed: 250,
-            obstacleDistanceRange: [150, 300]
-        }
     }
 
     /**
@@ -31,9 +21,9 @@ export default class GameScene extends Phaser.Scene
      */
     preload()
     {
-        this.load.image('ground', 'assets/images/ground.png');
-        this.load.image('ball', 'assets/images/ball.png');
-        this.load.image('obstacle', 'assets/images/obstacle.png');
+        this.load.image('paddle', 'assets/images/paddle_128_32.png');      
+        this.load.image('ball', 'assets/images/ball_32_32.png');
+//        this.load.image('ball', 'assets/images/basketball.png');
     }
 
     /**
@@ -48,78 +38,86 @@ export default class GameScene extends Phaser.Scene
          * As we move downward, the y value increases.
          */
         this.player = this.physics.add.sprite(
-            this.physics.world.bounds.width / 10 * 2, // x position 
-            this.physics.world.bounds.height / 4 * 3 - this.gameOptions.bounceHeight, // y position 
+            this.physics.world.bounds.width / 2, // x position 
+            this.physics.world.bounds.height - 40, // y position 
+            'paddle' // key of image for the sprite
+        )
+
+        // Let's add the ball
+        this.ball = this.physics.add.sprite(
+            this.physics.world.bounds.width / 2, // x position 
+            this.physics.world.bounds.height - 80, // y position
             'ball' // key of image for the sprite
         )
-        this.player.body.gravity.y = this.gameOptions.ballGravity;
-        this.player.setBounce(1);
-        this.player.setCircle(25);
 
-        this.ground = this.physics.add.sprite(
-            this.physics.world.bounds.width / 2,
-            this.physics.world.bounds.height / 4 * 3,
-            'ground'
-        )
-        this.ground.setImmovable(true);
+        // Ensure that the player and ball can't leave the screen
+        this.player.setCollideWorldBounds(true);
+        this.ball.setCollideWorldBounds(true);
 
-        this.obstacleGroup = this.physics.add.group()
-        let obstacleX = this.physics.world.bounds.width
-        for(let i=0; i<10; i++)
-        {
-            let obstacle = this.obstacleGroup.create(obstacleX, this.ground.getBounds().top, 'obstacle')
-            obstacle.setOrigin(0.5, 1);
-            obstacle.setImmovable(true)
-            obstacleX += Phaser.Math.Between(this.gameOptions.obstacleDistanceRange[0], this.gameOptions.obstacleDistanceRange[1])
-        }
+        /**
+         * The bounce ensures that the ball retains its velocity after colliding with
+         * an object.
+        */
+        this.ball.setBounce(1, 1)
 
-        this.obstacleGroup.setVelocityX(-this.gameOptions.obstacleSpeed);
+        /**
+         * Setup collision, enable top, left, and right collosion, only disable collision with the bottom of the game world,
+         * so the ball falls to the bottom, which means that the game is over
+         */
+        this.physics.world.setBoundsCollision(true, true, true, false);
+
+        // Make the player immovable
+        this.player.setImmovable()
 
         /* Add collision for the player and the ball.
          * If collision happens, function hitPlayer() will be called
          */ 
-        this.physics.add.collider(this.player, this.ground, function(){
-            if(this.firstBounce == 0)
+        this.physics.add.collider(this.ball, this.player, this.hitPlayer, null, this)
+
+
+        this.input.on('pointermove', function (pointer) {
+
+            this.player.x = pointer.x
+            if (!this.gameStarted)
             {
-                this.firstBounce = this.player.body.velocity.y
+                this.ball.x = this.player.x
             }
-            else {
-                this.player.body.velocity.y = this.firstBounce
+        }, this)
+
+        this.input.on('pointerup', function (pointer) {
+
+            if (!this.gameStarted)
+            {
+                this.gameStarted = true
+                this.ball.setVelocityY(-200)
+                this.ball.setVelocityX(Phaser.Math.Between(-200, 200))                
             }
-        }, null, this)
 
-        this.input.on('pointerdown', this.boost, this);
-
-        this.physics.add.collider(this.player, this.obstacleGroup, function(){
-            console.log("Game Over")
-            this.scene.start();
-        }, null, this);
-
-        console.log("created")
+        }, this)
     }
 
     update()
     {
-        this.obstacleGroup.getChildren().forEach(function(obstacle){
-            if(obstacle.getBounds().right < 0){
-//                this.updateScore(1);
-                obstacle.x = this.getRightmostObstacle() + Phaser.Math.Between(this.gameOptions.obstacleDistanceRange[0], this.gameOptions.obstacleDistanceRange[1]);
-            }
-        }, this)
+        // Check if the ball left the scene i.e. game over
+        if (this.isGameOver())
+        {
+            // Output "Game Over" in console window
+            console.log("Game Over")
 
-    }
-
-    boost(){
-        if(this.firstBounce != 0){
-            this.player.body.velocity.y = this.gameOptions.ballPower;
+            // Then we restart the game
+            this.gameStarted = false
+            this.scene.restart()
         }
     }
 
-    getRightmostObstacle(){
-        let rightmostObstacle = 0;
-        this.obstacleGroup.getChildren().forEach(function(obstacle){
-            rightmostObstacle = Math.max(rightmostObstacle, obstacle.x);
-        });
-        return rightmostObstacle;
+    hitPlayer(ball, player)
+    {
+
+    }
+
+    // Checks if the user lost the game
+    isGameOver()
+    {
+        return this.ball.body.y > this.physics.world.bounds.height
     }
 }
